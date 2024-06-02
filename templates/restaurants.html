@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <title>Restaurants in {{ city }}</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/exhibitions?city={{ city }}">Exhibitions</a></li>
+            <li><a href="/restaurants?city={{ city }}">Restaurants</a></li>
+            <li><a href="/galleries?city={{ city }}">Galleries</a></li>
+        </ul>
+    </nav>
+    <h1>Restaurants in {{ city }}</h1>
+    <div class="card-container">
+        {% for restaurant in restaurants %}
+            <div class="card">
+                <h2>{{ restaurant.name }}</h2>
+                <p><strong>Cuisine:</strong> {{ restaurant.type }}</p>
+                <p><strong>Location:</strong> {{ restaurant.location }}</p>
+                <p><strong>Stars:</strong> {{ restaurant.rating }}</p>
+                <p><strong>Website:</strong> <a href="{{ restaurant.link }}">{{ restaurant.link }}</a></p>
+            </div>
+        {% else %}
+            <p>No restaurants found.</p>
+        {% endfor %}
+    </div>
+</body>
+</html>

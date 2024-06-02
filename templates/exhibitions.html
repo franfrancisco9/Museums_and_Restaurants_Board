@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <title>Exhibitions in {{ city }}</title>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/restaurants?city={{ city }}">Restaurants</a></li>
+            <li><a href="/galleries?city={{ city }}">Galleries</a></li>
+        </ul>
+    </nav>
+    <h1>Exhibitions in {{ city }}</h1>
+    <form method="get" action="/exhibitions">
+        <input type="hidden" name="city" value="{{ city }}">
+        <label for="gallery">Filter by Gallery:</label>
+        <select name="gallery" id="gallery" onchange="this.form.submit()">
+            <option value="">All Galleries</option>
+            {% for gallery in galleries %}
+                <option value="{{ gallery }}" {% if gallery == request.args.get('gallery') %}selected{% endif %}>{{ gallery }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    <div id="calendar"></div>
+    <div class="card-container">
+        {% for exhibition in exhibitions %}
+            <div class="card" id="exhibition-{{ loop.index }}">
+                <h2>{{ exhibition.exhibition_name }}</h2>
+                <p><strong>Gallery:</strong> <a href="{{ exhibition.exhibition_link }}">{{ exhibition.exhibition_name }}</a></p>
+                <img src="{{ exhibition.gallery_img }}" alt="Gallery Image">
+                <p><strong>Location:</strong> {{ exhibition.galery_adress }}</p>
+                <p><strong>Open Hours:</strong> {{ exhibition.open_hours }}</p>
+                <p><strong>Description:</strong> {{ exhibition.exhibition_description or 'No description provided.' }}</p>
+                <p><strong>Time Period:</strong> {{ exhibition.time_period }}</p>
+                <p><strong>Artist:</strong> <a href="{{ exhibition.artist_link }}">{{ exhibition.artist_name }}</a></p>
+                <form method="post" action="/select_exhibition">
+                    <input type="hidden" name="exhibition" value='{{ exhibition | tojson }}'>
+                    <label for="planned_dates">Planned Visit Dates:</label>
+                    <input type="text" id="planned_dates_{{ loop.index }}" name="planned_dates" placeholder="Select dates" readonly>
+                    <button type="submit">Select Exhibition</button>
+                </form>
+            </div>
+        {% else %}
+            <p>No exhibitions found.</p>
+        {% endfor %}
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#calendar').fullCalendar({
+                height: 'auto',
+                contentHeight: 500,
+                aspectRatio: 2,
+                events: {{ condensed_events | tojson }},
+                eventClick: function(event) {
+                    if (event.id) {
+                        $('html, body').animate({
+                            scrollTop: $("#" + event.id).offset().top
+                        }, 1000);
+                    }
+                },
+                eventRender: function(event, element) {
+                    if (element.find('.fc-title').length > 0) {
+                        element.find('.fc-title').html(element.find('.fc-title').text().split(', ').join('<br>'));
+                    }
+                }
+            });
+
+            {% for exhibition in exhibitions %}
+                var startDate = moment("{{ exhibition.start_date }}");
+                var endDate = moment("{{ exhibition.end_date }}");
+                $("#planned_dates_{{ loop.index }}").daterangepicker({
+                    minDate: startDate,
+                    maxDate: endDate,
+                    locale: {
+                        format: 'YYYY-MM-DD'
+                    }
+                });
+            {% endfor %}
+        });
+    </script>
+</body>
+</html>

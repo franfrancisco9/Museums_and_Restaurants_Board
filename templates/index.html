@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <title>Welcome Page</title>
+</head>
+<body>
+    <h1>Welcome to the Exhibition and Restaurant Guide</h1>
+    <p>Select a city:</p>
+    <form action="/exhibitions" method="get">
+        <label for="city">City:</label>
+        <select name="city" id="city">
+            {% for city in cities %}
+                <option value="{{ city }}">{{ city.capitalize() }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Go">
+    </form>
+
+    <div id="main-calendar"></div>
+    <h2>Selected Exhibitions</h2>
+    <div class="card-container">
+        {% for exhibition in exhibitions %}
+            <div class="card" id="exhibition-{{ loop.index }}">
+                <h2>{{ exhibition.exhibition_name }}</h2>
+                <p><strong>Gallery:</strong> {{ exhibition.galery_name }}</p>
+                <p><strong>Location:</strong> {{ exhibition.galery_adress }}</p>
+                <p><strong>Open Hours:</strong> {{ exhibition.open_hours }}</p>
+                <p><strong>Description:</strong> {{ exhibition.exhibition_description or 'No description provided.' }}</p>
+                <p><strong>Time Period:</strong> {{ exhibition.time_period }}</p>
+                <p><strong>Planned Dates:</strong> {{ exhibition.planned_dates | join(', ') }}</p>
+                <form method="post" action="/remove_exhibition">
+                    <input type="hidden" name="exhibition" value='{{ exhibition | tojson }}'>
+                    <button type="submit">Remove Exhibition</button>
+                </form>
+                <form method="post" action="/update_planned_dates">
+                    <input type="hidden" name="exhibition_name" value="{{ exhibition.exhibition_name }}">
+                    <label for="new_dates">Edit Planned Dates:</label>
+                    <input type="text" id="new_dates_{{ loop.index }}" name="new_dates" value="{{ exhibition.planned_dates | join(', ') }}" readonly>
+                    <button type="submit">Update Dates</button>
+                </form>
+            </div>
+        {% else %}
+            <p>No selected exhibitions.</p>
+        {% endfor %}
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#main-calendar').fullCalendar({
+                height: '50%',
+                events: {{ events | tojson }},
+                eventClick: function(event) {
+                    if (event.id) {
+                        $('html, body').animate({
+                            scrollTop: $("#" + event.id).offset().top
+                        }, 1000);
+                    }
+                }
+            });
+
+            {% for exhibition in exhibitions %}
+                var startDate = moment("{{ exhibition.start_date }}");
+                var endDate = moment("{{ exhibition.end_date }}");
+                $("#new_dates_{{ loop.index }}").daterangepicker({
+                    minDate: startDate,
+                    maxDate: endDate,
+                    locale: {
+                        format: 'YYYY-MM-DD'
+                    }
+                });
+            {% endfor %}
+        });
+    </script>
+</body>
+</html>
