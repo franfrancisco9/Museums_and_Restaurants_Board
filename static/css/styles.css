@@ -5,85 +5,133 @@ body {
     padding: 0;
 }
 
-nav ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
+header {
     background-color: #333;
-    overflow: hidden;
-}
-
-nav ul li {
-    float: left;
-}
-
-nav ul li a {
-    display: block;
     color: white;
+    padding: 10px 0;
     text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
 }
 
-nav ul li a:hover {
-    background-color: #111;
+.city-selection {
+    text-align: center;
+    margin: 20px 0;
 }
 
-h1 {
+.city-selection form {
+    display: inline-block;
+    margin: 0;
+}
+
+.city-selection label {
+    margin-right: 10px;
+}
+
+#main-calendar, #calendar {
+    width: 90%;
+    margin: 20px auto;
+}
+
+.exhibitions {
     text-align: center;
-    color: #333;
+    margin: 20px 0;
 }
 
 .card-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
     padding: 20px;
 }
 
 .card {
-    background-color: #fff;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    margin: 10px;
-    padding: 20px;
-    border-radius: 8px;
-    width: 300px;
-    text-align: center;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 15px;
+    border-radius: 10px;
+    overflow: hidden;
+    height: 300px;  /* Fixed height */
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
 }
 
-.card img {
+.card:hover, .card.highlight {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.card-image {
     width: 100%;
-    height: auto;
-    max-height: 150px;  /* Limit the height of the images */
-    border-bottom: 1px solid #ddd;
-    margin-bottom: 15px;
+    height: 150px;  /* Fixed height for the image container */
+    overflow: hidden;
 }
 
-.card h2 {
-    margin: 0;
-    color: #333;
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;  /* Ensures the image covers the container without distortion */
 }
 
-.card p {
-    color: #666;
+.card-content {
+    padding: 10px; /* Reduced padding */
     text-align: left;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-.card a {
-    color: #0066cc;
+.card-content h3 {
+    margin: 0 0 5px 0; /* Reduced margin */
+    color: #333;
+    font-size: 1.2em;
+}
+
+.card-content p {
+    margin: 5px 0;
+    color: #666;
+    font-size: 0.9em; /* Smaller font size */
+}
+
+.description {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.card:hover .description {
+    white-space: normal;
+    overflow: visible;
+}
+
+.button-remove, .button-update {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 8px 12px; /* Reduced padding */
+    text-align: center;
     text-decoration: none;
+    display: inline-block;
+    font-size: 12px; /* Reduced font size */
+    margin: 10px 0;
+    cursor: pointer;
+    border-radius: 5px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: background-color 0.3s;
 }
 
-.card a:hover {
-    text-decoration: underline;
+.button-remove:hover, .button-update:hover {
+    background-color: #d32f2f;
 }
 
-form {
-    margin-top: 10px;
+.button-update {
+    background-color: #4CAF50;
 }
 
-.ui-datepicker {
-    background: #fff;
-    border: 1px solid #555;
-    color: #000;
+.button-update:hover {
+    background-color: #388E3C;
 }

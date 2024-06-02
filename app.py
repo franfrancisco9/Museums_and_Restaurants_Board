@@ -1,11 +1,10 @@
 import os
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 import datetime
 import json
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
 
 selected_exhibitions_file = 'selected_exhibitions.json'
 
@@ -48,11 +47,16 @@ def process_exhibitions(exhibitions):
                     end_date = datetime.datetime.strptime(dates[1].strip(), "%d %b %Y").date()
                     exhibition['start_date'] = start_date.isoformat()
                     exhibition['end_date'] = end_date.isoformat()
-                    valid_exhibitions.append(exhibition)
                 except ValueError:
                     print(f"Error parsing dates for exhibition: {exhibition['exhibition_name']}")
             else:
                 print(f"Invalid time period for exhibition: {exhibition['exhibition_name']}")
+        
+        # Ensure description is a string
+        if 'exhibition_description' in exhibition:
+            exhibition['exhibition_description'] = str(exhibition['exhibition_description'])
+        
+        valid_exhibitions.append(exhibition)
     return valid_exhibitions
 
 def group_events_by_date(exhibitions):
@@ -86,10 +90,12 @@ def group_events_by_date(exhibitions):
     return condensed_events
 
 def save_selected_exhibitions(exhibitions):
+    # save dictionaries to json file
     with open(selected_exhibitions_file, 'w') as f:
         json.dump(exhibitions, f)
         
 def load_selected_exhibitions():
+    # load dictionaries from json file
     try:
         with open(selected_exhibitions_file, 'r') as f:
             return json.load(f)
@@ -100,18 +106,14 @@ def load_selected_exhibitions():
 def index():
     cities = get_unique_cities()
     selected_exhibitions = load_selected_exhibitions()
-    events = []
+    
+    # Ensure all fields in selected exhibitions are properly defined
     for exhibition in selected_exhibitions:
-        if 'planned_dates' in exhibition:
-            for date_range in exhibition['planned_dates']:
-                if ' - ' in date_range:
-                    start_date, end_date = date_range.split(' - ')
-                    events.append({
-                        'title': exhibition['exhibition_name'],
-                        'start': start_date,
-                        'end': end_date,
-                        'id': 'planned-' + exhibition['exhibition_name'].replace(' ', '-') + '-' + start_date
-                    })
+        exhibition['exhibition_description'] = str(exhibition.get('exhibition_description', ''))
+        exhibition['planned_dates'] = exhibition.get('planned_dates', [])
+
+    events = group_events_by_date(selected_exhibitions)
+
     return render_template('index.html', cities=cities, exhibitions=selected_exhibitions, events=events)
 
 @app.route('/restaurants')
@@ -138,26 +140,10 @@ def show_exhibitions():
 
 @app.route('/select_exhibition', methods=['POST'])
 def select_exhibition():
-    exhibition = json.loads(request.form.get('exhibition'))
-    planned_dates_str = request.form.get('planned_dates')
-    planned_dates = [planned_dates_str]
-    
-    start_date = datetime.datetime.strptime(exhibition['start_date'], '%Y-%m-%d').date()
-    end_date = datetime.datetime.strptime(exhibition['end_date'], '%Y-%m-%d').date()
-
-    valid_dates = []
-    for date_range in planned_dates:
-        if ' - ' in date_range:
-            start_date_str, end_date_str = date_range.split(' - ')
-            start_date_obj = datetime.datetime.strptime(start_date_str, '%Y-%m-%d').date()
-            end_date_obj = datetime.datetime.strptime(end_date_str, '%Y-%m-%d').date()
-            if start_date <= start_date_obj <= end_date and start_date <= end_date_obj <= end_date:
-                valid_dates.append(date_range)
-            else:
-                flash(f"Planned dates {date_range} are out of the exhibition period.")
-    
-    exhibition['planned_dates'] = valid_dates
-
+    exhibition = request.form.get('exhibition')
+    planned_dates = request.form.get('planned_dates')
+    exhibition = json.loads(exhibition)
+    exhibition['planned_dates'] = planned_dates.split(',')
     selected_exhibitions = load_selected_exhibitions()
     selected_exhibitions.append(exhibition)
     save_selected_exhibitions(selected_exhibitions)
@@ -165,37 +151,22 @@ def select_exhibition():
 
 @app.route('/remove_exhibition', methods=['POST'])
 def remove_exhibition():
-    exhibition = json.loads(request.form.get('exhibition'))
+    exhibition = request.form.get('exhibition')
+    exhibition = json.loads(exhibition)
     selected_exhibitions = load_selected_exhibitions()
-    selected_exhibitions = [e for e in selected_exhibitions if e['exhibition_name'] != exhibition['exhibition_name']]
+    selected_exhibitions = [ex for ex in selected_exhibitions if ex['exhibition_name'] != exhibition['exhibition_name']]
     save_selected_exhibitions(selected_exhibitions)
     return redirect(url_for('index'))
 
 @app.route('/update_planned_dates', methods=['POST'])
 def update_planned_dates():
     exhibition_name = request.form.get('exhibition_name')
-    new_dates_str = request.form.get('new_dates')
-    new_dates = [new_dates_str]
-    
+    new_dates = request.form.get('new_dates').split(',')
     selected_exhibitions = load_selected_exhibitions()
     for exhibition in selected_exhibitions:
         if exhibition['exhibition_name'] == exhibition_name:
-            start_date = datetime.datetime.strptime(exhibition['start_date'], '%Y-%m-%d').date()
-            end_date = datetime.datetime.strptime(exhibition['end_date'], '%Y-%m-%d').date()
-
-            valid_dates = []
-            for date_range in new_dates:
-                if ' - ' in date_range:
-                    start_date_str, end_date_str = date_range.split(' - ')
-                    start_date_obj = datetime.datetime.strptime(start_date_str, '%Y-%m-%d').date()
-                    end_date_obj = datetime.datetime.strptime(end_date_str, '%Y-%m-%d').date()
-                    if start_date <= start_date_obj <= end_date and start_date <= end_date_obj <= end_date:
-                        valid_dates.append(date_range)
-                    else:
-                        flash(f"Planned dates {date_range} are out of the exhibition period.")
-            
-            exhibition['planned_dates'] = valid_dates
-    
+            exhibition['planned_dates'] = new_dates
+            break
     save_selected_exhibitions(selected_exhibitions)
     return redirect(url_for('index'))
 
