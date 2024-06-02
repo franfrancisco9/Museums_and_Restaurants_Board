@@ -89,6 +89,23 @@ def group_events_by_date(exhibitions):
                 })
     return condensed_events
 
+def group_events_by_planned_dates(exhibitions):
+    events = []
+    for exhibition in exhibitions:
+        if 'planned_dates' in exhibition and exhibition['planned_dates']:
+            for date in exhibition['planned_dates']:
+                start = date.split(' - ')[0].strip()
+                print(start)
+                end = date.split(' - ')[1].strip()
+                print(end)
+                events.append({
+                    'title': exhibition['exhibition_name'],
+                    'start': start,
+                    'end': end,
+                    'id': 'exhibition-' + str(exhibitions.index(exhibition) + 1)
+                })
+    return events
+
 def save_selected_exhibitions(exhibitions):
     # save dictionaries to json file
     with open(selected_exhibitions_file, 'w') as f:
@@ -112,7 +129,7 @@ def index():
         exhibition['exhibition_description'] = str(exhibition.get('exhibition_description', ''))
         exhibition['planned_dates'] = exhibition.get('planned_dates', [])
 
-    events = group_events_by_date(selected_exhibitions)
+    events = group_events_by_planned_dates(selected_exhibitions)
 
     return render_template('index.html', cities=cities, exhibitions=selected_exhibitions, events=events)
 

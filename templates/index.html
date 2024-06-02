@@ -72,6 +72,7 @@
 
     <script>
         $(document).ready(function() {
+            console.log("Events data: ", {{ events | tojson }}); // Debug print
             $('#main-calendar').fullCalendar({
                 height: '50%',
                 events: {{ events | tojson }},
