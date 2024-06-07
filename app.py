@@ -36,11 +36,14 @@ def process_exhibitions(exhibitions):
     for exhibition in exhibitions:
         time_period = exhibition.get('time_period', '')
         if time_period:
-            dates = time_period.strip().split('-')
-            dates[0] = dates[0].strip().split()[0] + ' ' + dates[0].strip().split()[1]
-            dates[1] = dates[1].strip().split()[0] + ' ' + dates[1].strip().split()[1]
-            year = time_period.split()[-1]
-            dates = [f'{date} {year}' for date in dates]
+            try:
+                dates = time_period.strip().split('-')
+                dates[0] = dates[0].strip().split()[0] + ' ' + dates[0].strip().split()[1]
+                dates[1] = dates[1].strip().split()[0] + ' ' + dates[1].strip().split()[1]
+                year = time_period.split()[-1]
+                dates = [f'{date} {year}' for date in dates]
+            except IndexError:
+                dates = []
             if len(dates) == 2:
                 try:
                     start_date = datetime.datetime.strptime(dates[0].strip(), "%d %b %Y").date()
@@ -95,9 +98,7 @@ def group_events_by_planned_dates(exhibitions):
         if 'planned_dates' in exhibition and exhibition['planned_dates']:
             for date in exhibition['planned_dates']:
                 start = date.split(' - ')[0].strip()
-                print(start)
                 end = date.split(' - ')[1].strip()
-                print(end)
                 events.append({
                     'title': exhibition['exhibition_name'],
                     'start': start,
@@ -121,7 +122,7 @@ def load_selected_exhibitions():
 
 @app.route('/')
 def index():
-    cities = get_unique_cities()
+    cities = sorted(get_unique_cities())
     selected_exhibitions = load_selected_exhibitions()
     
     # Ensure all fields in selected exhibitions are properly defined
@@ -132,6 +133,7 @@ def index():
     events = group_events_by_planned_dates(selected_exhibitions)
 
     return render_template('index.html', cities=cities, exhibitions=selected_exhibitions, events=events)
+
 
 @app.route('/restaurants')
 def show_restaurants():

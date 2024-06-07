@@ -90,6 +90,7 @@ nav ul li a:hover {
     width: 100%;
     height: 200px;
     overflow: hidden;
+    background: #f4f4f9;  /* Fallback background color */
 }
 
 .card-image img {

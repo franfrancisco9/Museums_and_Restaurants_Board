@@ -38,10 +38,10 @@
             {% for exhibition in exhibitions %}
                 <div class="card" id="exhibition-{{ loop.index }}" data-exhibition-id="{{ exhibition.exhibition_name }}">
                     <div class="card-image">
-                        <img src="{{ exhibition.gallery_img }}" alt="Gallery Image">
+                        <img src="{{ exhibition.exhibition_image_link }}" alt="Gallery Image" onerror="this.parentElement.style.background='#f4f4f9'; this.style.display='none';">
                     </div>
                     <div class="card-content">
-                        <h3>{{ exhibition.exhibition_name }}</h3>
+                        <h3><a href="{{ exhibition.exhibition_link }}" target="_blank">{{ exhibition.exhibition_name }}</a></h3>
                         <p><strong>Gallery:</strong> {{ exhibition.galery_name }}</p>
                         <p><strong>Location:</strong> {{ exhibition.galery_adress }}</p>
                         <p><strong>Open Hours:</strong> {{ exhibition.open_hours }}</p>
